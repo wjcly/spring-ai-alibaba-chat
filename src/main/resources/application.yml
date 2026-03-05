@@ -1,0 +1,193 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+
+spring:
+  application:
+    name: spring-ai-multi-provider-demo
+  
+  # 文件上传配置
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 50MB
+      max-request-size: 100MB
+
+  # H2 数据库配置
+  datasource:
+    url: jdbc:h2:mem:knowledge_db
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: 
+  
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+  # ============ Spring AI 配置 ============
+  ai:
+    # 阿里云百炼配置
+    dashscope:
+      api-key: ${DASHSCOPE_API_KEY:your-alibaba-api-key}
+      chat:
+        options:
+          model: qwen-max
+      embedding:
+        options:
+          model: text-embedding-v2
+    
+    # Azure OpenAI 配置
+    azure:
+      openai:
+        api-key: ${AZURE_OPENAI_API_KEY:}
+        endpoint: ${AZURE_OPENAI_ENDPOINT:}
+        chat:
+          options:
+            model: gpt-4
+    
+    # OpenAI 配置
+    openai:
+      api-key: ${OPENAI_API_KEY:}
+      chat:
+        options:
+          model: gpt-3.5-turbo
+    
+    # Ollama 配置（本地）
+    ollama:
+      base-url: http://localhost:11434
+      chat:
+        options:
+          model: llama3
+
+# ============ 多 AI 厂商配置（HTTP 调用） ============
+ai:
+  providers:
+    # 默认厂商
+    default-provider: ${AI_DEFAULT_PROVIDER:alibaba}
+    
+    # 阿里云百炼 (Qwen/通义千问)
+    alibaba:
+      enabled: true
+      api-key: ${QWEN_API_KEY:your-qwen-api-key
+      model: qwen-max
+      base-url: https://dashscope.aliyuncs.com
+      timeout: 30000
+    
+    # DeepSeek (深度求索)
+    deepseek:
+      enabled: false
+      api-key: ${DEEPSEEK_API_KEY:your-deepseek-api-key}
+      model: deepseek-chat
+      base-url: https://api.deepseek.com
+      timeout: 30000
+    
+    # 腾讯混元
+    tencent:
+      enabled: false
+      api-key: ${TENCENT_API_KEY:your-tencent-api-key}
+      model: hunyuan-lite
+      base-url: https://hunyuan.tencentcloudapi.com
+      timeout: 30000
+    
+    # 字节豆包
+    doubao:
+      enabled: false
+      api-key: ${DOUBAO_API_KEY:your-doubao-api-key}
+      model: Doubao-pro-4k
+      base-url: https://ark.cn-beijing.volces.com
+      timeout: 30000
+    
+    # OpenAI (ChatGPT)
+    openai:
+      enabled: false
+      api-key: ${OPENAI_API_KEY:your-openai-api-key}
+      model: gpt-4-turbo
+      base-url: https://api.openai.com
+      timeout: 30000
+    
+    # NVIDIA NIM
+    nvidia:
+      enabled: false
+      api-key: ${NVIDIA_API_KEY:your-nvidia-api-key}
+      model: meta/llama3-70b
+      base-url: https://integrate.api.nvidia.com
+      timeout: 30000
+    
+    # Ollama (本地部署)
+    ollama:
+      enabled: false
+      api-key: ""
+      model: llama3
+      base-url: http://localhost:11434
+      timeout: 60000
+
+  # AI 服务配置
+  service:
+    # 限流配置
+    rate-limit:
+      enabled: true
+      requests-per-second: 10
+    # 重试配置
+    retry:
+      enabled: true
+      max-attempts: 3
+      backoff-delay: 1000
+    # RAG 配置
+    rag:
+      enabled: true
+      similarity-threshold: 0.7
+      max-documents: 5
+      chunk-size: 500
+      chunk-overlap: 50
+
+# 多模态处理配置
+multimodal:
+  ocr:
+    tessdata-path: ${TESSDATA_PATH:}
+    languages: chi_sim+eng
+  image:
+    max-size: 10MB
+    supported-formats: jpg,jpeg,png,gif,bmp
+  report:
+    supported-formats: pdf,xls,xlsx,jpg,jpeg,png
+    max-file-size: 50MB
+
+# 工业场景配置
+industrial:
+  safety-keywords:
+    - 安全帽
+    - 安全带
+    - 防护网
+    - 脚手架
+    - 临时用电
+    - 起重机械
+    - 深基坑
+    - 高支模
+
+# 日志配置
+logging:
+  level:
+    root: INFO
+    com.example.ai: DEBUG
+    org.springframework.ai: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: logs/spring-ai-demo.log
+
+# Actuator 监控
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
